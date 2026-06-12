@@ -1,0 +1,23 @@
+{
+  "name": "evidence-platform-backend",
+  "version": "0.1.0",
+  "description": "AI-Powered Investigation Support Platform - backend (Kerala Police Hackathon, synthetic demo data only)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --use-system-ca server.js",
+    "dev": "node --use-system-ca server.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.7.0",
+    "multer": "^2.1.1",
+    "openai": "^6.42.0",
+    "pdfkit": "^0.19.1"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.2.0"
+  }
+}

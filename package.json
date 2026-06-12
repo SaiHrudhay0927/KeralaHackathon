@@ -1,0 +1,14 @@
+{
+  "name": "evidence-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-Powered Investigation Support Platform (Kerala Police Hackathon, synthetic demo data only)",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.7.0",
+    "multer": "^2.1.1",
+    "openai": "^6.42.0",
+    "pdfkit": "^0.19.1"
+  }
+}
