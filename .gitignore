@@ -6,3 +6,5 @@ frontend/dist/
 *.log
 .claude/
 CLAUDE.md
+
+.vercel

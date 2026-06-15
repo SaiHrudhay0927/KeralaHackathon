@@ -22,9 +22,11 @@ export default function GraphView() {
   const [chat, setChat] = useState([]);
   const [question, setQuestion] = useState('');
   const [asking, setAsking] = useState(false);
+  const [mention, setMention] = useState(null); // { start, query, index } while typing @…
   const fgRef = useRef();
   const wrapRef = useRef();
   const chatEndRef = useRef();
+  const inputRef = useRef();
   const [size, setSize] = useState({ w: 800, h: 500 });
 
   useEffect(() => {
@@ -112,6 +114,7 @@ export default function GraphView() {
     const text = (q || question).trim();
     if (!text || asking) return;
     setQuestion('');
+    setMention(null);
     setChat((c) => [...c, { role: 'user', text }]);
     setAsking(true);
     try {
@@ -121,6 +124,63 @@ export default function GraphView() {
       setChat((c) => [...c, { role: 'ai', text: `Sorry — ${err.message}` }]);
     } finally {
       setAsking(false);
+    }
+  }
+
+  // Entities matching the text typed after the most recent "@".
+  const mentionMatches = useMemo(() => {
+    if (!mention || !graph) return [];
+    const q = mention.query.toLowerCase();
+    return graph.nodes
+      .filter(
+        (n) =>
+          n.label.toLowerCase().includes(q) ||
+          (n.aliases || []).some((a) => a.toLowerCase().includes(q))
+      )
+      .slice(0, 8);
+  }, [mention, graph]);
+
+  function handleQuestionChange(e) {
+    const value = e.target.value;
+    setQuestion(value);
+    // Detect an active "@token" ending at the caret (no spaces inside).
+    const caret = e.target.selectionStart;
+    const match = value.slice(0, caret).match(/@([^\s@]*)$/);
+    if (match) setMention({ start: caret - match[0].length, query: match[1], index: 0 });
+    else setMention(null);
+  }
+
+  function applyMention(node) {
+    if (!mention) return;
+    // Quote multi-word labels so the entity stays one token for the AI.
+    const label = node.label.includes(' ') ? `"${node.label}"` : node.label;
+    const before = question.slice(0, mention.start);
+    const after = question.slice(mention.start + 1 + mention.query.length); // +1 for "@"
+    const next = `${before}${label} ${after}`;
+    setQuestion(next);
+    setMention(null);
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        const pos = (before + label + ' ').length;
+        inputRef.current.focus();
+        inputRef.current.setSelectionRange(pos, pos);
+      }
+    });
+  }
+
+  function handleInputKeyDown(e) {
+    if (!mention || mentionMatches.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setMention((m) => ({ ...m, index: (m.index + 1) % mentionMatches.length }));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setMention((m) => ({ ...m, index: (m.index - 1 + mentionMatches.length) % mentionMatches.length }));
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault(); // select the entity instead of submitting
+      applyMention(mentionMatches[mention.index]);
+    } else if (e.key === 'Escape') {
+      setMention(null);
     }
   }
 
@@ -241,10 +301,29 @@ export default function GraphView() {
                 className="chat-input"
                 onSubmit={(e) => { e.preventDefault(); ask(); }}
               >
+                {mention && mentionMatches.length > 0 && (
+                  <div className="mention-dropdown">
+                    <div className="mention-hint">Entities in this case — click or press Enter</div>
+                    {mentionMatches.map((n, i) => (
+                      <div
+                        key={n._id}
+                        className={`mention-item ${i === mention.index ? 'on' : ''}`}
+                        onMouseDown={(e) => { e.preventDefault(); applyMention(n); }}
+                        onMouseEnter={() => setMention((m) => ({ ...m, index: i }))}
+                      >
+                        <span className="dot" style={{ background: NODE_COLORS[n.type] || '#94a3b8' }} />
+                        <span className="mention-label">{n.label}</span>
+                        <span className="mention-type">{n.type}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <input
+                  ref={inputRef}
                   value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Ask about the case…"
+                  onChange={handleQuestionChange}
+                  onKeyDown={handleInputKeyDown}
+                  placeholder="Ask about the case… (type @ to mention an entity)"
                   disabled={asking}
                 />
                 <button type="submit" disabled={asking || !question.trim()}>Ask</button>
