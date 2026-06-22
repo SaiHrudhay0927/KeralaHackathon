@@ -23,6 +23,8 @@ export default function GraphView() {
   const [question, setQuestion] = useState('');
   const [asking, setAsking] = useState(false);
   const [mention, setMention] = useState(null); // { start, query, index } while typing @…
+  const [dossier, setDossier] = useState(null); // { nodeId, text } for the selected node
+  const [dossierBusy, setDossierBusy] = useState(false);
   const fgRef = useRef();
   const wrapRef = useRef();
   const chatEndRef = useRef();
@@ -107,6 +109,19 @@ export default function GraphView() {
       fgRef.current.zoom(3, 800);
       setSelected(node);
       setPanelTab('node');
+    }
+  }
+
+  async function fetchDossier(node) {
+    const id = node.id || node._id;
+    setDossierBusy(true);
+    try {
+      const { dossier: text } = await api.dossier(id);
+      setDossier({ nodeId: id, text });
+    } catch (e) {
+      setDossier({ nodeId: id, text: `Could not generate dossier: ${e.message}` });
+    } finally {
+      setDossierBusy(false);
     }
   }
 
@@ -338,6 +353,22 @@ export default function GraphView() {
               {selected.aliases?.length > 0 && (
                 <p className="mono">also seen as: {selected.aliases.join(', ')}</p>
               )}
+
+              <div className="dossier-box">
+                {dossier && dossier.nodeId === (selected.id || selected._id) ? (
+                  <p className="dossier-text">{dossier.text}</p>
+                ) : (
+                  <button
+                    className="secondary"
+                    style={{ width: '100%' }}
+                    onClick={() => fetchDossier(selected)}
+                    disabled={dossierBusy}
+                  >
+                    {dossierBusy ? 'Generating dossier…' : '🧠 Generate AI dossier'}
+                  </button>
+                )}
+              </div>
+
               <h3 style={{ marginTop: 14 }}>Connections</h3>
               {(edgesByNode.get(selected.id || selected._id) || []).map((e) => {
                 const otherId = e.from === (selected.id || selected._id) ? e.to : e.from;

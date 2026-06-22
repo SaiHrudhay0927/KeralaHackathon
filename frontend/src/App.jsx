@@ -6,7 +6,9 @@ import GraphView from './pages/GraphView.jsx';
 import Timeline from './pages/Timeline.jsx';
 import Leads from './pages/Leads.jsx';
 import AuditLog from './pages/AuditLog.jsx';
-import { getCurrentCase } from './api.js';
+import AskAI from './components/AskAI.jsx';
+import Logo from './components/Logo.jsx';
+import { getCurrentCase, setCurrentCase } from './api.js';
 
 function RequireCase({ children }) {
   if (!getCurrentCase()) return <Navigate to="/" replace />;
@@ -14,7 +16,15 @@ function RequireCase({ children }) {
 }
 
 export default function App() {
-  const [currentCase, setCase] = useState(getCurrentCase());
+  // Every fresh load starts with no case open, so the app lands on the Cases
+  // list and the case-scoped nav (Dashboard, Graph, etc.) only appears after
+  // the investigator explicitly opens a case. (Clears any case persisted from
+  // a previous session before the first render, so RequireCase sees it too.)
+  const [currentCase, setCase] = useState(() => {
+    setCurrentCase(null);
+    return null;
+  });
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const location = useLocation();
 
   useEffect(() => {
@@ -22,6 +32,13 @@ export default function App() {
     window.addEventListener('case-changed', onChange);
     return () => window.removeEventListener('case-changed', onChange);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
   // Re-mount case-scoped pages when the case changes so data reloads.
   const caseKey = currentCase ? currentCase._id : 'none';
@@ -32,26 +49,37 @@ export default function App() {
       <header className="header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1>Investigation Support Platform</h1>
+            <h1>
+              <Logo className="logo-eye" size={24} /> Sakshi
+            </h1>
             <span className="case-name">
               {currentCase
                 ? `Open case: ${currentCase.name}${currentCase.caseNumber ? ` (${currentCase.caseNumber})` : ''}`
                 : 'No case selected'}
             </span>
           </div>
-          {currentCase && location.pathname !== '/' && (
-            <NavLink to="/" className="switch-case">Switch case</NavLink>
-          )}
+          <div className="header-actions">
+            {currentCase && location.pathname !== '/' && (
+              <NavLink to="/" className="switch-case">Switch case</NavLink>
+            )}
+            <button className="secondary theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+              {theme === 'dark' ? '☀' : '🌙'}
+            </button>
+          </div>
         </div>
       </header>
       <div className="layout">
         <nav className="sidebar">
-          <NavLink to="/" end>Cases</NavLink>
-          <NavLink to="/dashboard" className={!currentCase ? 'disabled' : ''}>Dashboard</NavLink>
-          <NavLink to="/graph" className={!currentCase ? 'disabled' : ''}>Graph View</NavLink>
-          <NavLink to="/timeline" className={!currentCase ? 'disabled' : ''}>Timeline</NavLink>
-          <NavLink to="/leads" className={!currentCase ? 'disabled' : ''}>Leads</NavLink>
-          <NavLink to="/audit" className={!currentCase ? 'disabled' : ''}>Audit Log</NavLink>
+          {currentCase ? (
+            <>
+              <NavLink to="/dashboard">Dashboard</NavLink>
+              <NavLink to="/graph">Graph View</NavLink>
+              <NavLink to="/timeline">Timeline</NavLink>
+              <NavLink to="/leads">Leads</NavLink>
+            </>
+          ) : (
+            <NavLink to="/" end>Cases</NavLink>
+          )}
         </nav>
         <main className="content">
           <Routes>
@@ -64,6 +92,7 @@ export default function App() {
           </Routes>
         </main>
       </div>
+      {currentCase && <AskAI key={caseKey} />}
     </div>
   );
 }

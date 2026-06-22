@@ -160,7 +160,7 @@ export default function Cases() {
                   {current && current._id === c._id && <span className="chip parsed" style={{ marginLeft: 6 }}>currently open</span>}
                 </h3>
                 {c.description && <p style={{ color: '#94a3b8', marginTop: 4 }}>{c.description}</p>}
-                <p className="mono" style={{ marginTop: 6 }}>
+                <p style={{ marginTop: 6, fontSize: 12, color: 'var(--text-dim)' }}>
                   {c.stats.files} evidence file(s) · {c.stats.events} events · {c.stats.activeLeads} active lead(s) · created {new Date(c.createdAt).toLocaleDateString()}
                 </p>
               </div>

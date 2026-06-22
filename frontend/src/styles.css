@@ -1,6 +1,23 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  /* Light theme (default) */
+  --bg: #ffffff;
+  --bg-panel: #f8fafc;
+  --bg-hover: #eef2f7;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-dim: #64748b;
+  --accent: #0284c7;
+  --on-accent: #ffffff;
+  --danger: #dc2626;
+  --warn: #d97706;
+  --ok: #16a34a;
+  --font-head: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+[data-theme='dark'] {
   --bg: #0f172a;
   --bg-panel: #1e293b;
   --bg-hover: #283548;
@@ -8,6 +25,7 @@
   --text: #e2e8f0;
   --text-dim: #94a3b8;
   --accent: #38bdf8;
+  --on-accent: #082f49;
   --danger: #f87171;
   --warn: #fbbf24;
   --ok: #4ade80;
@@ -16,9 +34,15 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
 }
+
+/* Form controls don't inherit font-family by default — force Inter on them
+   too so every bit of UI text uses the same font. */
+button, input, select, textarea { font-family: var(--font-body); }
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-head); }
 
 .app { min-height: 100vh; display: flex; flex-direction: column; }
 
@@ -37,7 +61,8 @@ body {
   border-bottom: 1px solid var(--border);
   padding: 14px 24px;
 }
-.header h1 { font-size: 18px; font-weight: 600; }
+.header h1 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.header h1 .logo-eye { color: var(--accent); flex: none; }
 .case-name { color: var(--text-dim); font-size: 13px; }
 
 .layout { display: flex; flex: 1; }
@@ -131,7 +156,7 @@ tr:hover td { background: var(--bg-hover); }
 
 button {
   background: var(--accent);
-  color: #082f49;
+  color: var(--on-accent);
   border: none;
   border-radius: 6px;
   padding: 8px 16px;
@@ -254,3 +279,152 @@ select {
 }
 .switch-case:hover { background: var(--bg-hover); }
 .sidebar a.disabled { opacity: 0.4; pointer-events: none; }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.theme-toggle { white-space: nowrap; }
+
+.search-input {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  min-width: 240px;
+  font-family: inherit;
+  font-size: 13px;
+}
+.search-input::placeholder { color: var(--text-dim); }
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.pager-controls { display: flex; align-items: center; gap: 10px; }
+
+/* --- AI Case Briefing card --- */
+.briefing {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--bg-panel)), var(--bg-panel));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+.briefing-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.briefing-title { font-family: var(--font-head); font-weight: 600; font-size: 15px; }
+.briefing-engine { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.briefing-refresh { margin-left: auto; padding: 5px 12px; font-size: 12px; }
+.conf-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.conf-pill.high { background: color-mix(in srgb, var(--ok) 25%, transparent); color: var(--ok); }
+.conf-pill.medium { background: color-mix(in srgb, var(--warn) 25%, transparent); color: var(--warn); }
+.conf-pill.low { background: color-mix(in srgb, var(--text-dim) 25%, transparent); color: var(--text-dim); }
+.briefing-headline { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.briefing-summary { color: var(--text-dim); line-height: 1.55; margin-bottom: 14px; }
+.briefing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.briefing-block .briefing-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.briefing-suspect { font-family: var(--font-head); font-size: 17px; font-weight: 600; color: var(--accent); }
+.briefing-block ul { margin: 0; padding-left: 16px; }
+.briefing-block li { margin-bottom: 5px; line-height: 1.45; }
+
+/* --- Global "Ask AI" launcher + drawer --- */
+.askai-launcher {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 40;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+.askai-drawer {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 40;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: 540px;
+  max-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  padding: 14px;
+}
+.askai-head { display: flex; align-items: center; margin-bottom: 10px; }
+.askai-title { font-family: var(--font-head); font-weight: 600; }
+.askai-close {
+  margin-left: auto;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 4px 8px;
+}
+.askai-close:hover { color: var(--text); filter: none; }
+.askai-messages { flex: 1; }
+.askai-suggestions { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.askai-chip {
+  background: var(--bg-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+  text-align: left;
+  font-weight: 500;
+  padding: 7px 10px;
+}
+.askai-chip:hover { border-color: var(--accent); filter: none; }
+
+/* --- Victim risk banner (#1) --- */
+.risk-banner {
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-left-width: 6px;
+}
+.risk-banner.critical { border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, var(--bg-panel)); }
+.risk-banner.high { border-left-color: #ea580c; background: color-mix(in srgb, #ea580c 12%, var(--bg-panel)); }
+.risk-banner.moderate { border-left-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, var(--bg-panel)); }
+.risk-banner.low { border-left-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--bg-panel)); }
+.risk-main { display: flex; align-items: center; gap: 10px; }
+.risk-level { font-family: var(--font-head); font-weight: 700; font-size: 15px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+.risk-icon { font-size: 16px; }
+.risk-score { font-weight: 600; font-size: 12px; color: var(--text-dim); letter-spacing: 0; }
+.risk-refresh { margin-left: auto; padding: 4px 10px; font-size: 12px; }
+.risk-headline { margin-top: 8px; font-weight: 600; }
+.risk-factors { margin: 8px 0 0; padding-left: 18px; }
+.risk-factors li { margin-bottom: 4px; line-height: 1.45; color: var(--text-dim); }
+
+/* --- Timeline pattern analysis (#2) --- */
+.analysis-panel h3 { font-size: 14px; margin-bottom: 12px; }
+.insight-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px 18px; }
+.insight { display: flex; gap: 8px; align-items: flex-start; line-height: 1.45; }
+.insight-icon { flex-shrink: 0; }
+.insight.danger { color: var(--danger); }
+.insight.warn { color: var(--warn); }
+
+/* --- Entity dossier (#5) --- */
+.dossier-box { margin-top: 14px; }
+.dossier-text {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  font-size: 13px;
+}

@@ -78,6 +78,9 @@ export const api = {
       body: JSON.stringify({ caseId: caseId() }),
     }),
   audit: () => request(withCase('/audit')),
+  briefing: (refresh) => request(withCase(`/assistant/briefing${refresh ? '?refresh=1' : ''}`)),
+  risk: (refresh) => request(withCase(`/assistant/risk${refresh ? '?refresh=1' : ''}`)),
+  dossier: (nodeId) => request(withCase(`/assistant/dossier?nodeId=${nodeId}`)),
   askAssistant: (question) =>
     request('/assistant', {
       method: 'POST',

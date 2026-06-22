@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
+import CaseBriefing from '../components/CaseBriefing.jsx';
+import RiskAssessment from '../components/RiskAssessment.jsx';
 
 export default function Dashboard() {
   const [files, setFiles] = useState([]);
@@ -7,6 +9,7 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [drag, setDrag] = useState(false);
+  const [briefingKey, setBriefingKey] = useState(0); // bump to regenerate after uploads
   const inputRef = useRef(null);
 
   async function refresh() {
@@ -42,6 +45,7 @@ export default function Dashboard() {
         await api.uploadEvidence(file);
       }
       await refresh();
+      setBriefingKey((k) => k + 1); // new evidence → fresh briefing
     } catch (err) {
       setError(`Upload failed: ${err.message}`);
     } finally {
@@ -53,6 +57,9 @@ export default function Dashboard() {
     <div>
       <h2>Case Dashboard</h2>
       {error && <div className="error-box">{error}</div>}
+
+      <RiskAssessment refreshKey={briefingKey} />
+      <CaseBriefing refreshKey={briefingKey} />
 
       <div
         className={`dropzone ${drag ? 'drag' : ''}`}
